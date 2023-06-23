@@ -1,0 +1,35 @@
+# Use an ARG to allow the base image to be set at build time
+ARG ARCH
+FROM arm32v7/alpine:latest
+
+# Update and install required packages
+RUN apk update && apk add \
+  bash \
+  gtk+3.0 \
+  curl \
+  libnotify \
+  nss \
+  nspr \
+  alsa-lib \
+  dbus \
+  mesa-dri-gallium \
+  mesa-glapi \
+  mesa-egl \
+  mesa-gles \
+  tzdata \
+  libdrm 
+
+# Set timezone
+RUN ln -fs /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && \
+    apk del tzdata
+
+# Copy the package file
+RUN curl -s  https://dial-app.meticuloushome.com/alpha/meticulous-1.1.0-alpha.10.tar.gz -o meticulous-ui_1.1.0.tar.gz
+
+# Extract the package
+RUN tar -xf meticulous-ui_1.1.0.tar.gz -C /opt && \
+    rm meticulous-ui_1.1.0.tar.gz
+
+RUN mkdir /opt/meticulous-ui && mv /opt/out/meticulous-ui-linux-arm64/* /opt/meticulous-ui/ && rm -r /opt/out
+
+CMD ["/opt/meticulous-ui/meticulous-ui --no-sandbox --enable-features=UseOzonePlatform -ozone-platform=wayland"]
